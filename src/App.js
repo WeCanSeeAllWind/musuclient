@@ -1,34 +1,25 @@
-import axios from "axios";
-import { useState } from 'react';
-import io from 'socket.io-client';
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
+import Enter from "./pages/Enter";
+import MainRoom from "./pages/MainRoom";
+import Test from "./pages/test";
 
-// const serverDomain = 'https://mususerver.herokuapp.com/'
-const serverDomain = process.env.REACT_APP_IO || 'http://localhost:3001';
-const socket = io(serverDomain);
-
-function App() {
-  const [servermessage, setServermesage] = useState('');
-  const [socketmessage, setSocketmesage] = useState('');
-  axios(serverDomain)
-    .then(res=>{
-      console.log(res.data);
-      setServermesage(res.data);
-    })
-  function handleClick(e){
-    e.preventDefault();
-    socket.emit('welcome', (data)=>{
-    setSocketmesage(data);
-    })
-  };  
-  
+export default function App() {
   return (
-    <>
-      <h1>{servermessage}</h1>
-      this is MuSU Client
-      <button onClick={handleClick}></button>
-      <h2>{socketmessage}</h2>
-    </>
+    <Router>
+        <Switch>
+          <Route path="/">
+            <Test />
+          </Route>
+          <Route path="/enter">
+            <Enter />
+          </Route>
+          <Route path="/main">
+            <MainRoom />
+          </Route>
+        </Switch>
+    </Router>
   );
 }
 
-export default App;
+
+
