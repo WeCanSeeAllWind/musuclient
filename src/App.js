@@ -7,7 +7,7 @@ export default function App() {
   return (
     <Router>
         <Switch>
-          <Route path="/">
+          <Route exact path="/">
             <Test />
           </Route>
           <Route path="/enter">
