@@ -1,20 +1,20 @@
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import Enter from "./pages/Enter";
-import MainRoom from "./pages/MainRoom";
+import Mainroom from "./pages/Mainroom";
 import Test from "./pages/Test";
 
 export default function App() {
   return (
     <Router>
         <Switch>
-          <Route path="/">
+          <Route exact path="/test">
             <Test />
           </Route>
-          <Route path="/enter">
-            <Enter />
+          <Route exact path="/main">
+            <Mainroom />
           </Route>
-          <Route path="/main">
-            <MainRoom />
+          <Route exact path="/">
+            <Enter />
           </Route>
         </Switch>
     </Router>
