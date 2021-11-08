@@ -7,7 +7,7 @@ function Nav({className}) {
       <StyledImage src="/images/elice.png" width="175.625px" height="40px"/>
       <StyledLetter><p>온라인 교실</p></StyledLetter>
       <StyledIcon>
-        <img src="/images/user.png" width="30px" height="30px"/>
+        <img src="/images/user.png" width="30px" height="30px" alt="hi"/>
         <span></span>
       </StyledIcon>
     </StyledDiv>

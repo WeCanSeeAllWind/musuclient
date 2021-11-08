@@ -8,10 +8,10 @@ function Footer({className}) {
       <StyledLeftArrow><div></div></StyledLeftArrow>
       <StyledNums>1 / 1</StyledNums>
       <StyledRightArrow><div></div></StyledRightArrow>
-      <StyledLayoutBtn><img src="/images/layout.png" width="18px" height="18px"/></StyledLayoutBtn>
-      <StyledFullscreenBtn><img src="/images/expand.png" width="18px" height="18px"/></StyledFullscreenBtn>
-      <StyledSettingBtn><img src="/images/settings.png" width="18px" height="18px"/></StyledSettingBtn>
-      <StyledChatIcon><img src="/images/computer.png"/></StyledChatIcon>
+      <StyledLayoutBtn><img src="/images/layout.png" width="18px" height="18px" alt="hi"/></StyledLayoutBtn>
+      <StyledFullscreenBtn><img src="/images/expand.png" width="18px" height="18px" alt="hi"/></StyledFullscreenBtn>
+      <StyledSettingBtn><img src="/images/settings.png" width="18px" height="18px" alt="hi"/></StyledSettingBtn>
+      <StyledChatIcon><img src="/images/computer.png" alt="hi"/></StyledChatIcon>
     </StyledDiv>
   )
 }

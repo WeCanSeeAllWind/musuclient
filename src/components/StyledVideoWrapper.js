@@ -6,7 +6,7 @@ function StyledVideoWrapper() {
     <StyledDiv>
       <StyledVideo autoplay playsinline/>
       <NickBar>
-        <div><img src="/images/micon.png" width="20px" height="20px"/></div>
+        <div><img src="/images/micon.png" width="20px" height="20px" alt="hi"/></div>
         <p>이루시</p>
       </NickBar>
     </StyledDiv>
