@@ -1,10 +1,25 @@
-import React from 'react'
+import React, {useRef, useEffect} from 'react'
 import styled from "styled-components";
 
-function StyledVideoWrapper() {
+function MyVideoWrapper() {
+  const vivi = useRef();
+  useEffect(() => {
+    const getUserMedia = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({video: true});
+        vivi.current.srcObject = stream;
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    getUserMedia();
+  }, []);
+  const Kelo = ()=>{
+    return <video ref={vivi} autoPlay playsInline width="auto" height="100%" overFlow="hidden" objectFit="contain"></video>
+  }
   return (
     <StyledDiv>
-      <StyledVideo autoplay playsinline/>
+      <Kelo/>
       <NickBar>
         <div><img src="/images/micon.png" width="20px" height="20px" alt="hi"/></div>
         <p>이루시</p>
@@ -17,10 +32,15 @@ const StyledDiv = styled.div`
   border-bottom: 1px solid #464659;
   border-right: 1px solid #464659;
   width: 100%;
+  max-height: 100%;
   position: relative;
-`;
-const StyledVideo = styled.video`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
   overflow: hidden;
+  box-sizing: border-box;
+  object-fit: fill;
 `;
 const NickBar = styled.div`
   margin: 0;
@@ -52,4 +72,4 @@ const NickBar = styled.div`
   }
 `;
 
-export default StyledVideoWrapper
+export default MyVideoWrapper

@@ -20,11 +20,12 @@ const StyledDiv = styled.div`
   flex-direction: column;
   width: 100vw;
   height: 100vh;
+  box-sizing: border-box;
   .nav {
     height: 64px;
   }
   .videoContainer {
-    flex: auto;
+    height: 100%;
   }
   .footer {
     margin-top: auto;
