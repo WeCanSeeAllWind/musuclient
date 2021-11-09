@@ -6,14 +6,12 @@ import SideVideoWrapper from './SideVideoWrapper';
 function VideoContainer({className}) {
   return (
     <StyledDiv className={className}>
-      <HighLight>
-        <MyVideoWrapper/>
-      </HighLight>
-      <SideBar>
-        <SideVideoWrapper/>
-        <SideVideoWrapper/>
-        <SideVideoWrapper/>
-      </SideBar>
+      <MyVideoWrapper/>
+      <MyVideoWrapper/>
+      <MyVideoWrapper/>
+      <MyVideoWrapper/>
+      <MyVideoWrapper/>
+      <MyVideoWrapper/>
     </StyledDiv>
   )
 }
@@ -21,22 +19,14 @@ function VideoContainer({className}) {
 const StyledDiv = styled.div`
   background-color: #22222c;
   display: grid;
-  grid-template-columns: 0.8fr 0.2fr;
+  -ms-grid-column-align: center;
+  -ms-grid-row-align: center;
+  grid-template-rows: 0.5fr 0.5fr;
+  grid-template-columns: 0.333333333fr 0.333333333fr 0.333333333fr;
+  grid-gap: 10px;
   box-sizing: border-box;
   height: 100%;
-`;
-const HighLight = styled.div`
-  width: 80vw;
-  display: flex;
-  height: 100%;
-  justify-content: center;
-  box-sizing: border-box;
-  max-height: 100%;
-`;
-const SideBar = styled.div`
-  width: 20vw;
-  box-sizing: border-box;
-  max-height: 100%;
+  padding: 10px;
 `;
 
 export default VideoContainer

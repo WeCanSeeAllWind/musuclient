@@ -15,7 +15,7 @@ function MyVideoWrapper() {
     getUserMedia();
   }, []);
   const Kelo = ()=>{
-    return <video ref={vivi} autoPlay playsInline width="auto" height="100%" overFlow="hidden" objectFit="contain"></video>
+    return <video ref={vivi} autoPlay playsInline width="100%" height="auto" overFlow="hidden" objectFit="contain"></video>
   }
   return (
     <StyledDiv>
@@ -41,6 +41,7 @@ const StyledDiv = styled.div`
   overflow: hidden;
   box-sizing: border-box;
   object-fit: fill;
+  border-radius: 10px;
 `;
 const NickBar = styled.div`
   margin: 0;
