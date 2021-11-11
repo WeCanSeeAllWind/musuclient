@@ -7,110 +7,68 @@ import { Context } from '../reducers';
 import Peer from 'peerjs';
 
 const serverDomain = process.env.REACT_APP_IO || 'http://localhost:3001';
-const socket = io(serverDomain);
 
-//components
-const TheVideo = ({theVideo})=>{
-  return <video ref={theVideo} autoPlay playsInline width="100%" height="auto" overflow="hidden"></video>
+function addVideoStream(video, stream) {
+  video.srcObject = stream;
+  video.addEventListener("loadedmetadata", () => {
+    video.play();
+  });
 }
 
 //Exfault Component
 function VideoContainer({className}) {
+  const [state, dispatch] = useContext(Context);
+  const myNick = state.nickName;
   const myVideo = useRef();
   const otherVideo = useRef();
+  let myStream;
+  let myPeerId;
   let otherName;
-  const [{nickName, myStream}, dispatch] = useContext(Context);
-  const getMyMedia = async (theVideo)=> {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({video: true});
-      theVideo.current.srcObject = stream;
-      dispatch({type: 'stream', payload: stream});
-    } catch (err) {
-      console.log(err);
-    }
-  };
-  const setMedia = (theVideo, stream) => {
-    try {
-      theVideo.current.srcObject = stream;
-    } catch (err) {
-      console.log(err);
-    }
-  };
+
   useEffect(() => {
-    let peers = {};
-    let connections = {};
-    let calls = {};
-    getMyMedia(myVideo);
-    socket.emit('welcome', nickName, console.log);
-    //peer A
-    socket.on('welcome', (otherSocketId, otherNick)=>{
-      peers[otherNick] = new Peer();
-      peers[otherNick].on('open', (myPeerId)=>{
-        console.log('My peer ID is: ' + myPeerId);
-        socket.emit('niceToSeeYou', myPeerId, nickName, otherSocketId);
+    const socket = io(serverDomain);
+    const peer = new Peer();
+
+    navigator.mediaDevices.getUserMedia({video:true}).then((stream)=>{
+      const streamId = stream.id;
+      myStream = stream;
+      addVideoStream(myVideo.current, stream);
+
+      //peer
+      peer.on('open', (id)=>{
+        myPeerId = id;
+        socket.emit('GoodMorning', myNick, myPeerId, streamId);
+      });
+      socket.on('GoodMorning', (otherNick, otherPeerId, otherStreamId)=>{
+        const mediaConnection = peer.call(otherPeerId, stream);
+        otherName = otherNick
+        mediaConnection.on("stream", (otherStream)=>{
+          addVideoStream(otherVideo.current, otherStream);
+        })
+
       })
-    });
-    socket.on('meToo', (otherPeerId, otherNick, otherSocketId)=>{
-      connections[otherNick] = peers[otherNick].connect(otherPeerId);
-      connections[otherNick].on('open', () => {
-        connections[otherNick].send(`hi I'm ${nickName}`);
-      });
-      peers[otherNick].on('connection', (conn)=>{
-        conn.on('data', (data)=>{console.log(data)});
-      });
-      peers[otherNick].on('call', (call) => {
-        navigator.mediaDevices.getUserMedia({video: true}, (stream) => {
-          call.answer(stream); // Answer the call with an A/V stream.
-          call.on('stream', (remoteStream) => {
-            // Show stream in some <video> element.
-            try {
-              otherName = otherNick;
-              otherVideo.current.srcObject = remoteStream;
-            } catch (err) {
-              console.log(err);
-            }
-          });
-        }, (err) => {
-          console.error('Failed to get local stream', err);
+      peer.on('call', (mediaConnection)=>{
+        mediaConnection.answer(stream);
+        
+        mediaConnection.on("stream", (otherStream)=>{
+          addVideoStream(otherVideo.current, otherStream);
         });
       });
-    });
-    //peer B
-    socket.on('niceToSeeYou', (otherPeerId, otherNick, otherSocketId)=>{
-      peers[otherNick] = new Peer();
-      peers[otherNick].on('open', (myPeerId)=>{
-        console.log('My peer ID is: ' + myPeerId);
-        socket.emit('meToo', myPeerId, nickName, otherSocketId);
-      });
-      connections[otherNick] = peers[otherNick].connect(otherPeerId);
-      peers[otherNick].on('connection', (conn)=>{
-        conn.on('data', (data)=>{console.log(data)});
-      });
-      connections[otherNick].on('open', () => {
-        connections[otherNick].send(`hi I'm ${nickName}`);
-      });
-      navigator.mediaDevices.getUserMedia({video: true}, (stream) => {
-        const call = peers[otherNick].call('another-peers-id', stream);
-        call.on('stream', (remoteStream) => {
-          // Show stream in some <video> element.
-          try {
-            otherName = otherNick;
-            otherVideo.current.srcObject = remoteStream;
-          } catch (err) {
-            console.log(err);
-          }
-        });
-      }, (err) => {
-        console.error('Failed to get local stream', err);
-      });
-    });
-    
-  }, []);
+    })
+
+
+
+
+    return () => {
+      
+    }
+  }, [])
+  
 
   return (
     <StyledDiv className={className}>
-      <MyVideoWrapper nick={nickName}><TheVideo theVideo={myVideo}/></MyVideoWrapper>
-      <MyVideoWrapper nick={otherName}><TheVideo theVideo={otherVideo}/></MyVideoWrapper>
+      <MyVideoWrapper nick={myNick}><video ref={myVideo} autoPlay playsInline/></MyVideoWrapper>
+      <MyVideoWrapper nick={otherName}><video ref={otherVideo} autoPlay playsInline/></MyVideoWrapper>
       <MyVideoWrapper/>
       <MyVideoWrapper/>
       <MyVideoWrapper/>
