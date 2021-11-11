@@ -1,14 +1,14 @@
 import React, {useRef, useEffect} from 'react'
 import styled from "styled-components";
 
-function MyVideoWrapper({children}) {
+function MyVideoWrapper({nick, children}) {
 
   return (
     <StyledDiv>
       {children}
       <NickBar>
         <div><img src="/images/micon.png" width="20px" height="20px" alt="hi"/></div>
-        <p>이루시</p>
+        <p>{nick}</p>
       </NickBar>
     </StyledDiv>
   )

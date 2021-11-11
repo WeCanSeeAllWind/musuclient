@@ -1,8 +1,9 @@
 // 승수님 이 부분 작성해 주셔요
-import React from 'react'
+import React, {useRef} from 'react'
 import styled from "styled-components"
-
-
+import { useHistory } from "react-router-dom";
+import { useContext, useReducer } from 'react/cjs/react.development';
+import { Context } from '../reducers';
 
 const Container = styled.div`
   height: 531px;
@@ -105,6 +106,14 @@ const Button2 = styled.button`
 `
 
 export default function Enter() {
+  const history = useHistory();
+  const [state, dispatch] = useContext(Context);
+  const nickInput = useRef();
+  const handleClick = (e)=>{
+    e.preventDefault();
+    dispatch({type: "nickName", payload: nickInput.current.value})
+    history.push('/main');
+  }
   return (
     <Container>
       <Upperbar>
@@ -134,21 +143,13 @@ export default function Enter() {
               </option>
             </Select>
           </Selector>
-          <Selector>
-            송출 화면 해상도
-            <Select>
-              <option>
-                표준 화질 (화면 720p, 웹캠 320p)
-              </option>
-            </Select>
-            
-          </Selector>
+          <input type="text" ref={nickInput} required placeholder="이름을 입력해주세요"/>
           <Text>저사양 환경에서는 낮은 해상도 사용을 권장합니다. 화질을 지나치게 높이면 네트워크 문제가 발생하여 끊김이 발생할 수 있습니다.</Text>
           <span>원하는 장치를 찾지 못하셨나요?</span>
         </Selectpart>
       </Content>
       <Buttons>
-            <Button1>
+            <Button1 onClick={handleClick}>
               입장하기
             </Button1>
             <Button2>
