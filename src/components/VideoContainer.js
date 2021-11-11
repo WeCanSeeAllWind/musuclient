@@ -4,6 +4,7 @@ import MyVideoWrapper from './MyVideoWrapper';
 import io from 'socket.io-client';
 import { useContext } from 'react';
 import { Context } from '../reducers';
+import Peer from 'peerjs';
 
 const serverDomain = process.env.REACT_APP_IO || 'http://localhost:3001';
 const socket = io(serverDomain);
@@ -16,75 +17,100 @@ const TheVideo = ({theVideo})=>{
 //Exfault Component
 function VideoContainer({className}) {
   const myVideo = useRef();
+  const otherVideo = useRef();
+  let otherName;
   const [{nickName, myStream}, dispatch] = useContext(Context);
-  const getUserMedia = async (theVideo) => {
+  const getMyMedia = async (theVideo)=> {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({video: true});
       theVideo.current.srcObject = stream;
-      dispatch({type: 'stream', payload: stream})
+      dispatch({type: 'stream', payload: stream});
     } catch (err) {
       console.log(err);
     }
   };
-
+  const setMedia = (theVideo, stream) => {
+    try {
+      theVideo.current.srcObject = stream;
+    } catch (err) {
+      console.log(err);
+    }
+  };
   useEffect(() => {
-    let peerConnections = {};
-    getUserMedia(myVideo);
+    let peers = {};
+    let connections = {};
+    let calls = {};
+    getMyMedia(myVideo);
     socket.emit('welcome', nickName, console.log);
     //peer A
-    socket.on('welcome', async (id, otherNick)=>{
-      peerConnections[otherNick] = new RTCPeerConnection();
-      makeConnection(otherNick);
-      console.log(`${otherNick} entered our room, his socketID is ${id}`);
-      const offer = await peerConnections[otherNick].createOffer();
-      peerConnections[otherNick].setLocalDescription(offer);
-      socket.emit('offer', offer, id, nickName);
-      console.log(`sent the offer to ${otherNick}`);
+    socket.on('welcome', (otherSocketId, otherNick)=>{
+      peers[otherNick] = new Peer();
+      peers[otherNick].on('open', (myPeerId)=>{
+        console.log('My peer ID is: ' + myPeerId);
+        socket.emit('niceToSeeYou', myPeerId, nickName, otherSocketId);
+      })
     });
-    socket.on('answer', (answer, id, otherNick)=>{
-      peerConnections[otherNick].setRemoteDescription(answer);
-      console.log(`received the answer from ${otherNick}`);
-    })
+    socket.on('meToo', (otherPeerId, otherNick, otherSocketId)=>{
+      connections[otherNick] = peers[otherNick].connect(otherPeerId);
+      connections[otherNick].on('open', () => {
+        connections[otherNick].send(`hi I'm ${nickName}`);
+      });
+      peers[otherNick].on('connection', (conn)=>{
+        conn.on('data', (data)=>{console.log(data)});
+      });
+      peers[otherNick].on('call', (call) => {
+        navigator.mediaDevices.getUserMedia({video: true}, (stream) => {
+          call.answer(stream); // Answer the call with an A/V stream.
+          call.on('stream', (remoteStream) => {
+            // Show stream in some <video> element.
+            try {
+              otherName = otherNick;
+              otherVideo.current.srcObject = remoteStream;
+            } catch (err) {
+              console.log(err);
+            }
+          });
+        }, (err) => {
+          console.error('Failed to get local stream', err);
+        });
+      });
+    });
     //peer B
-    socket.on('offer', async (offer, id, otherNick)=>{
-      console.log(`received thr offer from ${otherNick}`);
-      peerConnections[otherNick] = new RTCPeerConnection();
-      makeConnection(otherNick);
-      peerConnections[otherNick].setRemoteDescription(offer);
-      const answer = await peerConnections[otherNick].createAnswer();
-      peerConnections[otherNick].setLocalDescription(answer);
-      socket.emit('answer', answer, id, nickName);
-      console.log(`sent the answer to ${otherNick}`);
+    socket.on('niceToSeeYou', (otherPeerId, otherNick, otherSocketId)=>{
+      peers[otherNick] = new Peer();
+      peers[otherNick].on('open', (myPeerId)=>{
+        console.log('My peer ID is: ' + myPeerId);
+        socket.emit('meToo', myPeerId, nickName, otherSocketId);
+      });
+      connections[otherNick] = peers[otherNick].connect(otherPeerId);
+      peers[otherNick].on('connection', (conn)=>{
+        conn.on('data', (data)=>{console.log(data)});
+      });
+      connections[otherNick].on('open', () => {
+        connections[otherNick].send(`hi I'm ${nickName}`);
+      });
+      navigator.mediaDevices.getUserMedia({video: true}, (stream) => {
+        const call = peers[otherNick].call('another-peers-id', stream);
+        call.on('stream', (remoteStream) => {
+          // Show stream in some <video> element.
+          try {
+            otherName = otherNick;
+            otherVideo.current.srcObject = remoteStream;
+          } catch (err) {
+            console.log(err);
+          }
+        });
+      }, (err) => {
+        console.error('Failed to get local stream', err);
+      });
     });
-    //peer AB
-    socket.on('ice', (ice, otherNick)=>{
-      console.log(`received ice from ${otherNick}`);
-      peerConnections[otherNick].addIceCandidate(ice);
-    });
-  
-      //RTC functions
-    function makeConnection(otherNick){
-      console.log('makeconnectio before');
-      peerConnections[otherNick].addEventListener('icecandidate', handleIce);
-      console.log('make connection after');
-      peerConnections[otherNick].addEventListener('addstream', handleAddStream);
-    };
-    function handleIce(data){
-      console.log('before send ice');
-      socket.emit('ice', data.candidate, nickName);
-      console.log(`sent the ice`)
-    };
-    function handleAddStream(data){
-      console.log(`got an stream event from my peer`);
-      console.log(`peer stream is`, data.stream);
-    }
     
   }, []);
 
   return (
     <StyledDiv className={className}>
       <MyVideoWrapper nick={nickName}><TheVideo theVideo={myVideo}/></MyVideoWrapper>
-      <MyVideoWrapper/>
+      <MyVideoWrapper nick={otherName}><TheVideo theVideo={otherVideo}/></MyVideoWrapper>
       <MyVideoWrapper/>
       <MyVideoWrapper/>
       <MyVideoWrapper/>

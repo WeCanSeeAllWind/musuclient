@@ -4,7 +4,7 @@ export const Context = createContext();
 
 export const initialState = {
   nickName: "elice",
-  myStream: {},
+  myStream: null,
   freinds: [],
   peerConnections: {},
 }
