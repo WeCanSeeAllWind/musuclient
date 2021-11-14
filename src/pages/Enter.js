@@ -2,8 +2,15 @@
 import React, {useRef} from 'react'
 import styled from "styled-components"
 import { useHistory } from "react-router-dom";
-import { useContext, useReducer } from 'react/cjs/react.development';
+import { useContext} from 'react/cjs/react.development';
 import { Context } from '../reducers';
+import io from 'socket.io-client';
+
+const serverDomain = process.env.REACT_APP_IO || 'http://localhost:3001';
+const socket = io(serverDomain);
+socket.emit('hello', "hahahah");
+
+
 
 const Container = styled.div`
   height: 531px;
@@ -42,10 +49,10 @@ const Testview = styled.div`
   flex-direction: column;
   text-align: center;
 `
-const Cam = styled.video`
-  width: 250px;
-  margin: 20px 15px 20px 15px;
-`
+// const Cam = styled.video`
+//   width: 250px;
+//   margin: 20px 15px 20px 15px;
+// `
 const Selectpart = styled.div`
   display: inline;
   width: 350px;
@@ -107,7 +114,7 @@ const Button2 = styled.button`
 
 export default function Enter() {
   const history = useHistory();
-  const [state, dispatch] = useContext(Context);
+  const [, dispatch] = useContext(Context);
   const nickInput = useRef();
   const handleClick = (e)=>{
     e.preventDefault();
