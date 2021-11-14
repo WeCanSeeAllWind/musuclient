@@ -4,11 +4,11 @@ import styled from "styled-components"
 import { useHistory } from "react-router-dom";
 import { useContext} from 'react/cjs/react.development';
 import { Context } from '../reducers';
-import io from 'socket.io-client';
+// import io from 'socket.io-client';
 
-const serverDomain = process.env.REACT_APP_IO || 'http://localhost:3001';
-const socket = io(serverDomain);
-socket.emit('hello', "hahahah");
+// const serverDomain = process.env.REACT_APP_IO || 'http://localhost:3001';
+// const socket = io(serverDomain);
+// socket.emit('hello', "hahahah");
 
 
 
@@ -119,6 +119,7 @@ export default function Enter() {
   const handleClick = (e)=>{
     e.preventDefault();
     dispatch({type: "nickName", payload: nickInput.current.value})
+    // socket.emit('hello', "loooool", console.log);
     history.push('/main');
   }
   return (

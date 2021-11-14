@@ -8,7 +8,7 @@ import Peer from 'peerjs';
 
 const serverDomain = process.env.REACT_APP_IO || 'http://localhost:3001';
 const socket = io(serverDomain);
-// socket.emit('hello', "hahahah");
+
 
 
 function addVideoStream(video, stream) {
@@ -20,83 +20,35 @@ function addVideoStream(video, stream) {
 
 //Exfault Component
 function VideoContainer({className}) {
-  console.log(`it's my new render`)
-  const [state] = useContext(Context);
-  const [count, setCount] = useState(0);
-  const [people, setPeople] = useState({});
-  // const [peers, setPeers] = useState({});
-  const peers = {};
-  console.log(people);
-  const myNick = state.nickName;
+  console.log('Its my render');
   const myVideo = useRef();
-
-  const ref = [useRef(), useRef(), useRef(), useRef(), useRef()]
-
-  socket.on('hello', (data)=>{
-    console.log(data)
-    const newCount = count + 1
-    setCount(newCount)
-  })
-  
+  const [state, dispatch] = useContext(Context);
+  const myNick = state.nickName;
+  const [people, setPeople] = useState({});
+  const ref = [useRef(), useRef(), useRef(), useRef(), useRef(), useRef(), useRef()]
+  const [count, setCount] = useState(0);
+  // let count = 0;
+  const peers = {};
+  let myStream;
   useEffect(() => {
-    // const socket = io(serverDomain);
-    // const peer = new Peer();
-    peers[count] = new Peer();
-    console.log(count)
-    let myPeerId;
-    let myStream;
-
-    navigator.mediaDevices.getUserMedia({video:true}).then((stream)=>{
+    socket.emit('hello', myNick);
+  }, [])
+  useEffect(() => {
+    navigator.mediaDevices.getUserMedia({video: true}).then((stream)=>{
       myStream = stream
-      addVideoStream(myVideo.current, stream);
-
-      //peer
-      peers[count].on('open', (id)=>{
-        myPeerId = id;
-        socket.emit('GoodMorning', myNick, myPeerId);
-      });
-      socket.on('GoodMorning', (otherNick, otherPeerId)=>{
-        const dataConnection = peers[count].connect(otherPeerId);
-        dataConnection.on('open', ()=>{
-          dataConnection.send(myNick);
-        });
-        const mediaConnection = peers[count].call(otherPeerId, stream);
-        setPeople((names)=>{
-          const newNames = {...names, [count]: otherNick};
-          return newNames;
-        });
-        mediaConnection.on("stream", (otherStream)=>{
-          addVideoStream(ref[count].current, otherStream);
-        });
-        // setCount((cnt)=>cnt+1);
+    });
+    socket.on('hello', (otherNick, otherSocketId)=>{
+      console.log(otherNick, otherSocketId);
+      peers[otherNick] = new Peer();
+      peers[otherNick].on('open', (myPeerId)=>{
+        socket.emit('gm', myNick, myPeerId, otherSocketId);  
       })
-      peers[count].on('call', (mediaConnection)=>{
-        mediaConnection.answer(stream);
-        mediaConnection.on("stream", (otherStream)=>{
-          addVideoStream(ref[count].current, otherStream);
-        });
-        // setCount((cnt)=>cnt+1);
-      });
-      peers[count].on('connection', (conn)=>{
-        conn.on('data', (otherNick)=>{
-          console.log(`I got otherNick ${otherNick}`);
-          console.log(otherNick)
-          setPeople((names)=>{
-            const newNames = {...names, [count]: otherNick}
-            return newNames
-          });
-        })
-      })
+    });
+    socket.on('gm', (otherNick, otherPeerId, otherSocketId)=>{
+      console.log(otherNick, otherPeerId, otherSocketId);
     })
+  }, [])
 
-    return function cleanup() {
-      // myStream.getTracks().forEach((track) => {
-      //   track.stop();
-      // });
-      // socket.disconnect();
-      // peers[count].destroy();
-    };
-  }, [count])
   
 
   return (
