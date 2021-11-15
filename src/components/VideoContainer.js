@@ -9,8 +9,6 @@ import Peer from 'peerjs';
 const serverDomain = process.env.REACT_APP_IO || 'http://localhost:3001';
 const socket = io(serverDomain);
 
-
-
 function addVideoStream(video, stream) {
   video.srcObject = stream;
   video.addEventListener("loadedmetadata", () => {
@@ -22,6 +20,7 @@ function addVideoStream(video, stream) {
 function VideoContainer({className}) {
   console.log('Its my render');
   const myVideo = useRef();
+  
   const [state, dispatch] = useContext(Context);
   const myNick = state.nickName;
   const [people, setPeople] = useState({});
@@ -36,17 +35,46 @@ function VideoContainer({className}) {
   useEffect(() => {
     navigator.mediaDevices.getUserMedia({video: true}).then((stream)=>{
       myStream = stream
+      addVideoStream(myVideo.current, myStream);
     });
     socket.on('hello', (otherNick, otherSocketId)=>{
       console.log(otherNick, otherSocketId);
       peers[otherNick] = new Peer();
+      peers[otherNick].on('call', (call)=>{
+        console.log(`I got call from ${otherNick}`);
+        call.answer(myStream);
+        call.on('stream', (remoteStream)=>{
+          addVideoStream(ref[count].current, remoteStream);
+        })
+      })
       peers[otherNick].on('open', (myPeerId)=>{
         socket.emit('gm', myNick, myPeerId, otherSocketId);  
-      })
+      });
+      setCount(cnt=>cnt+1);
+      setPeople((names)=>{
+        const newNames = {...names, [count]: otherNick}
+        return newNames
+      });
     });
     socket.on('gm', (otherNick, otherPeerId, otherSocketId)=>{
+      socket.emit('metoo', myNick, otherSocketId);
       console.log(otherNick, otherPeerId, otherSocketId);
+      setCount(cnt=>cnt+1);
+      peers[otherNick] = new Peer();
+      const call = peers[otherNick].call(otherPeerId, myStream);
+      console.log(`I sent a call to ${otherNick}`)
+      call.on('stream', (remoteStream)=>{
+        addVideoStream(ref[count].current, remoteStream)
+      })
+      setPeople((names)=>{
+        const newNames = {...names, [count]: otherNick};
+        return newNames
+      })
     })
+    socket.on('metoo', (otherNick)=>{
+      console.log(`I got metoo from ${otherNick}`);
+      
+    });
   }, [])
 
   
