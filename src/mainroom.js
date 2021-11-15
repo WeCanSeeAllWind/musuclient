@@ -1,8 +1,8 @@
 // mumu 파트
 import React from 'react'
-import Footer from '../components/Footer'
-import Nav from '../components/Nav'
-import VideoContainer from '../components/VideoContainer'
+import Footer from './components/Footer'
+import Nav from './components/Nav'
+import VideoContainer from './components/VideoContainer'
 import styled from 'styled-components';
 
 
