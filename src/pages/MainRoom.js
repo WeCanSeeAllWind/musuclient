@@ -5,17 +5,18 @@ import Nav from '../components/Nav'
 import VideoContainer from '../components/VideoContainer'
 import styled from 'styled-components';
 
+
 export default function Mainroom() {
   return (
-    <StyledDiv>
+    <StyledMainDiv>
       <Nav className="nav"/>
       <VideoContainer className="videoContainer"/>
       <Footer className="footer"/>
-    </StyledDiv>
+    </StyledMainDiv>
   )
 };
 
-const StyledDiv = styled.div`
+const StyledMainDiv = styled.div`
   display: flex;
   flex-direction: column;
   width: 100vw;

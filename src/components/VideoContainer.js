@@ -7,86 +7,80 @@ import { Context } from '../reducers';
 import Peer from 'peerjs';
 
 const serverDomain = process.env.REACT_APP_IO || 'http://localhost:3001';
-const socket = io(serverDomain);
-
-function addVideoStream(video, stream) {
-  video.srcObject = stream;
-  video.addEventListener("loadedmetadata", () => {
-    video.play();
-  });
-}
+const socket = io(serverDomain, { transports: ['websocket', 'webRTC'] });
 
 //Exfault Component
 function VideoContainer({className}) {
-  console.log('Its my render');
   const myVideo = useRef();
   
   const [state, dispatch] = useContext(Context);
   const myNick = state.nickName;
-  const [people, setPeople] = useState({});
+  const [people, setPeople] = useState([]);
   const ref = [useRef(), useRef(), useRef(), useRef(), useRef(), useRef(), useRef()]
+  const stlyeldDiv = useRef();
   const [count, setCount] = useState(0);
-  // let count = 0;
-  const peers = {};
+  console.log(`Its my new render count : ${count}`);
+
+  const [peers, setPeers] = useState({});
   let myStream;
+
   useEffect(() => {
-    socket.emit('hello', myNick);
-  }, [])
-  useEffect(() => {
+    peers[count] = new Peer();
+    let peerName = null;
     navigator.mediaDevices.getUserMedia({video: true}).then((stream)=>{
       myStream = stream
+      let myPeerId;
       addVideoStream(myVideo.current, myStream);
-    });
-    socket.on('hello', (otherNick, otherSocketId)=>{
-      console.log(otherNick, otherSocketId);
-      peers[otherNick] = new Peer();
-      peers[otherNick].on('call', (call)=>{
-        console.log(`I got call from ${otherNick}`);
-        call.answer(myStream);
-        call.on('stream', (remoteStream)=>{
-          addVideoStream(ref[count].current, remoteStream);
+      peers[count].on('open', (id)=>{
+        myPeerId = id;
+        socket.emit('ImHere', myNick, myPeerId);
+      })
+      socket.on('ImHere', (otherNick, otherPeerId, otherSocketId)=>{
+        console.log(`I got ImHere form ${otherNick}`);
+        const call = peers[count].call(otherPeerId, stream);
+        console.log('내가 콜 보냈다')
+        call.on('stream', (otherStream)=>{
+          console.log('내가 콜 보낸 사람인데 스트림 받았어')
+          setCount(cnt=>cnt+1)
+          setPeople((names)=>{
+            const newNames = [...names, otherNick]
+            return newNames
+          })
+          const newDiv = document.createElement('div');
+          const newVideo = document.createElement('video');
+          addVideoStream(newVideo, otherStream);
+          newDiv.append(newVideo);
+          addVideoWrapper(newDiv, otherNick);
+          stlyeldDiv.current.append(newDiv);
+        })
+        socket.emit('myName', myNick, otherSocketId);
+      })
+      socket.on('otherName', (otherNick)=>{
+        peerName = otherNick
+      })
+      peers[count].on('call', (call)=>{
+        console.log('I got call')
+        call.answer(stream);
+        console.log('I answered the call')
+        call.on('stream', (otherStream)=>{
+          console.log('I got stream')
+          const newDiv = document.createElement('div');
+          const newVideo = document.createElement('video');
+          addVideoStream(newVideo, otherStream);
+          newDiv.append(newVideo);
+          addVideoWrapper(newDiv, peerName);
+          stlyeldDiv.current.append(newDiv);
         })
       })
-      peers[otherNick].on('open', (myPeerId)=>{
-        socket.emit('gm', myNick, myPeerId, otherSocketId);  
-      });
-      setCount(cnt=>cnt+1);
-      setPeople((names)=>{
-        const newNames = {...names, [count]: otherNick}
-        return newNames
-      });
     });
-    socket.on('gm', (otherNick, otherPeerId, otherSocketId)=>{
-      socket.emit('metoo', myNick, otherSocketId);
-      console.log(otherNick, otherPeerId, otherSocketId);
-      setCount(cnt=>cnt+1);
-      peers[otherNick] = new Peer();
-      const call = peers[otherNick].call(otherPeerId, myStream);
-      console.log(`I sent a call to ${otherNick}`)
-      call.on('stream', (remoteStream)=>{
-        addVideoStream(ref[count].current, remoteStream)
-      })
-      setPeople((names)=>{
-        const newNames = {...names, [count]: otherNick};
-        return newNames
-      })
-    })
-    socket.on('metoo', (otherNick)=>{
-      console.log(`I got metoo from ${otherNick}`);
-      
-    });
+    return ()=>{}
   }, [])
 
   
 
   return (
-    <StyledDiv className={className}>
-      <MyVideoWrapper nick={myNick}><video ref={myVideo} autoPlay playsInline width="100%" height="auto"/></MyVideoWrapper>
-      <MyVideoWrapper nick={people[0]}><video ref={ref[0]} autoPlay playsInline width="100%" height="auto"/></MyVideoWrapper>
-      <MyVideoWrapper nick={people[1]}><video ref={ref[1]} autoPlay playsInline width="100%" height="auto"/></MyVideoWrapper>
-      <MyVideoWrapper nick={people[2]}><video ref={ref[2]} autoPlay playsInline width="100%" height="auto"/></MyVideoWrapper>
-      <MyVideoWrapper nick={people[3]}><video ref={ref[3]} autoPlay playsInline width="100%" height="auto"/></MyVideoWrapper>
-      <MyVideoWrapper nick={people[4]}><video ref={ref[4]} autoPlay playsInline width="100%" height="auto"/></MyVideoWrapper>
+    <StyledDiv className={className} ref={stlyeldDiv}>
+      <MyVideoWrapper nick={myNick}><video ref={myVideo}/></MyVideoWrapper>
     </StyledDiv>
   )
 }
@@ -106,3 +100,68 @@ const StyledDiv = styled.div`
 `;
 
 export default VideoContainer
+
+function addVideoStream(video, stream) {
+  video.setAttribute("autoPlay", "playsInline");
+  video.style.width = '100%';
+  video.style.height = 'auto';
+  video.srcObject = stream;
+  video.addEventListener("loadedmetadata", () => {
+    video.play();
+  });
+}
+
+function addVideoWrapper(videoWrapper, nick) {
+  const nickBar = document.createElement('div');
+  const imgWrapper = document.createElement('div');
+  const icon = document.createElement('img');
+  const pTag = document.createElement('p');
+  pTag.innerHTML = nick;
+  icon.src = "/images/micon.png";
+  icon.style.width = "20px";
+  icon.style.height = "20px";
+  imgWrapper.append(icon);
+  nickBar.append(imgWrapper);
+  nickBar.append(pTag);
+  pTag.style.margin = "0 0 0 10px";
+  pTag.style.padding = "6px";
+  pTag.style.font = "14px bold";
+  pTag.style.color = "#ffffff";
+  pTag.style.height = "32px";
+  pTag.style.boxSizing = "border-box";
+  imgWrapper.style.cursor = "pointer";
+  imgWrapper.style.boxSizing = "border-box";
+  imgWrapper.style.backgroundColor = "rgb(249 250 252)";
+  imgWrapper.style.width = "32px";
+  imgWrapper.style.height = "32px";
+  imgWrapper.style.padding = "6px";
+  imgWrapper.style.borderRadius = "4px";
+  nickBar.style.margin = 0;
+  nickBar.style.padding = "4px";
+  nickBar.style.paddingLeft = "7px";
+  nickBar.style.display = "flex";
+  nickBar.style.boxSizing = "border-box";
+  nickBar.style.position = "absolute";
+  nickBar.style.width = "100%";
+  nickBar.style.height = "40px";
+  nickBar.style.bottom = 0;
+  nickBar.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
+  videoWrapper.style.border = "1px solid #464659";
+  videoWrapper.style.width = "100%";
+  videoWrapper.style.maxHeight = "100%";
+  videoWrapper.style.position = "relative";
+  videoWrapper.style.display = "flex";
+  videoWrapper.style.alignItems = "center";
+  videoWrapper.style.justifyContent = "center";
+  videoWrapper.style.flexDirection = "column";
+  videoWrapper.style.overflow = "hidden";
+  videoWrapper.style.boxSizing = "border-box";
+  videoWrapper.style.objectFit = "fill";
+  videoWrapper.style.borderRadius = "10px";
+
+  videoWrapper.append(nickBar);
+}
+
+// function setNick(nick){
+//   const hero = document.querySelector()
+// }

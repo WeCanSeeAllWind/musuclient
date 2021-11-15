@@ -1,10 +1,16 @@
 import React from 'react';
 import styled from "styled-components";
+import { useHistory } from "react-router-dom";
 
 function Nav({className}) {
+  const history = useHistory()
+  function handleClick(e){
+    e.preventDefault();
+    history.push('/');
+  }
   return (
     <StyledDiv className={className}>
-      <StyledImage src="/images/elice.png" width="175.625px" height="40px"/>
+      <StyledImage src="/images/elice.png" width="175.625px" height="40px" onClick={handleClick}/>
       <StyledLetter><p>온라인 교실</p></StyledLetter>
       <StyledIcon>
         <img src="/images/user.png" width="30px" height="30px" alt="hi"/>
@@ -23,6 +29,7 @@ const StyledDiv = styled.div`
 
 const StyledImage = styled.img`
   margin-right: 10px;
+  cursor: pointer;
 `;
 const StyledLetter = styled.div`
   font-size: 20px;
