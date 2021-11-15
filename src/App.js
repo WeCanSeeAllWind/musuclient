@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
-import Enter from "./pages/Enter";
-import Mainroom from "./pages/Mainroom";
-import Test from "./pages/Test";
+import Enter from "./pages/Enter.js";
+import Mainroom from "./pages/Mainroom.js";
+import Test from "./pages/Test.js";
 import {Context, reducer, initialState} from './reducers';
 import { useReducer } from "react";
 
