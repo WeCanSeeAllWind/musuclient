@@ -77,7 +77,6 @@ function VideoContainer({className}) {
   }, [])
 
   
-
   return (
     <StyledDiv className={className} ref={stlyeldDiv}>
       <MyVideoWrapper nick={myNick}><video ref={myVideo}/></MyVideoWrapper>
