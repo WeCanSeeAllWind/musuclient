@@ -4,6 +4,7 @@ import Mainroom from "./mainroom.js";
 import Test from "./pages/Test.js";
 import {Context, reducer, initialState} from './reducers';
 import { useReducer } from "react";
+import ChatRoom from "./components/ChatRoom.js";
 
 export default function App() {
 
@@ -19,6 +20,9 @@ export default function App() {
             </Route>
             <Route exact path="/">
               <Enter />
+            </Route>
+            <Route exact path="/chat">
+              <ChatRoom />
             </Route>
           </Switch>
       </Router>
